@@ -11,6 +11,7 @@ import { MemeReel, MEMES, MEME_DURATION } from "./reels/Memes";
 import { ThisOrThat, THIS_OR_THAT_DURATION } from "./reels/ThisOrThat";
 import { ExQuiz, EX_QUIZ, MAD_QUIZ, quizDuration } from "./reels/convos/ExQuiz";
 import { PickOne, PICK_ONE, PICK_SHORT, pickOneDuration } from "./reels/abcd/PickOne";
+import { CouplePostReel, COUPLE_POSTS, COUPLE_POST_DURATION } from "./reels/CouplePost";
 
 export const MyComposition = () => {
   return (
@@ -140,6 +141,18 @@ export const MyComposition = () => {
           component={MemeReel}
           defaultProps={{ meme: m }}
           durationInFrames={MEME_DURATION}
+          fps={30}
+          width={1080}
+          height={1920}
+        />
+      ))}
+      {COUPLE_POSTS.map((t) => (
+        <Composition
+          key={t.id}
+          id={t.id}
+          component={CouplePostReel}
+          defaultProps={{ post: t }}
+          durationInFrames={COUPLE_POST_DURATION}
           fps={30}
           width={1080}
           height={1920}

@@ -15,6 +15,10 @@ Writes to public/reels/audio/:
   funk_108.wav  8.9s seamless flirty funk loop, 108 BPM, E minor (flamingoappreels PickOne:
                clav stabs + slap-ish bass + claps; brighter and bouncier than tea_100)
   swish.wav    highlighter swipe (PickOne options)
+  NOTE: rerunning regenerates dream/funk/swish/tea with different bytes than the
+               committed files (shared rng drift); restore them with git checkout.
+  love_90.wav  8.0s seamless acoustic love-song loop, 90 BPM, C major (CouplePost: fingerpicked
+               Karplus-Strong guitar + string pad, no drums; 3 bars = 240 frames)
   pop.wav      soft message "pop" for chat bubbles (ExQuiz)
   dream_75.wav  12.8s seamless ambient loop, 75 BPM, D major (flamingoconvos voiceover quizzes;
                sits under a voice, so no drums in the vocal range and no melody)
@@ -25,7 +29,7 @@ from pathlib import Path
 
 import numpy as np
 from scipy.io import wavfile
-from scipy.signal import butter, sosfilt
+from scipy.signal import butter, lfilter, sosfilt
 
 SR = 44100
 BPM = 75
@@ -456,6 +460,67 @@ def swish():
     return lowpass(highpass(n, 1800), 6000) * env * 0.35
 
 
+def guitar(freq, dur, bright=0.5):
+    """Plucked nylon-ish string (Karplus-Strong): a noise burst through a damped
+    delay line tuned to the note. Sounds like a real pluck, not a synth."""
+    n = int(dur * SR)
+    N = max(2, int(round(SR / freq)))
+    burst = lowpass(rng.standard_normal(N), 1500 + 5000 * bright)
+    x = np.zeros(n)
+    x[:N] = burst
+    g = 0.996
+    a = np.zeros(N + 2)
+    a[0], a[N], a[N + 1] = 1, -g / 2, -g / 2
+    y = lfilter([1.0], a, x)
+    body = lowpass(y, 3200)  # soften the top like a nylon string through a wooden body
+    return body * np.minimum(np.arange(n) / (0.002 * SR), 1)
+
+
+def strings(freq, dur):
+    """Slow-bowed string section: detuned saws, gentle swell, heavy lowpass."""
+    t = t_axis(dur)
+    env = np.minimum(t / 0.9, 1) * np.minimum((dur - t) / 0.6, 1).clip(0)
+    vib = 1 + 0.003 * np.sin(2 * np.pi * 5.2 * t)
+    tone = sum(((freq * d * vib * t) % 1) * 2 - 1 for d in (0.997, 1.0, 1.004))
+    return lowpass(tone, 1100) * env
+
+
+def love(bpm=90, bars=3):
+    """Acoustic love-song bed in C major, 90 BPM, no drums, no fades (CouplePost reels).
+
+    C | Am7 | Fmaj7, fingerpicked 8ths (bass, then the treble strings rolling up and
+    back), a soft string pad swelling under each chord, and one high melody note per
+    bar. Fmaj7 resolves straight back into C, so the loop never sounds like it ends.
+    Rendered into a double-length buffer and folded so ringing strings wrap seamlessly.
+    3 bars at 90 BPM = 8.0s = 240 frames = CouplePost's length.
+    """
+    beat = 60 / bpm
+    bar = 4 * beat
+    L = int(bars * bar * SR)
+    gtr, pad, mel = (np.zeros(2 * L) for _ in range(3))
+    chords = [
+        ([48, 55, 60, 64, 67], [55, 60, 64]),  # C: picked voicing, pad voicing
+        ([45, 52, 57, 60, 64], [57, 60, 64]),  # Am7
+        ([41, 48, 57, 60, 64], [53, 57, 64]),  # Fmaj7
+    ]
+    melody = [76, 72, 69]  # E5, C5, A4: one sung-sounding note per bar, falling
+    pattern = [0, 2, 3, 4, 1, 3, 2, 3]  # Travis-ish: bass, then roll up the treble
+    for k, (pick, padv) in enumerate(chords):
+        s = k * bar
+        for i, idx in enumerate(pattern):
+            vel = 0.5 if i == 0 else 0.3 + 0.04 * (i % 2 == 0)
+            place(gtr, guitar(midi(pick[idx]), 2.6, bright=0.35 if idx < 2 else 0.55) * vel, s + i * beat / 2 + 0.006 * (i % 3))
+        for m in padv:
+            place(pad, strings(midi(m), bar + 0.8) * 0.05, s)
+        place(mel, guitar(midi(melody[k]), 3.0, bright=0.7) * 0.32, s + 2 * beat)
+    mix = gtr + pad + mel
+    mix = mix[:L] + mix[L:]  # fold the tail onto the start: seamless loop
+    mix = np.tanh(mix * 1.2) / np.tanh(1.2)
+    right = np.roll(mix, int(0.008 * SR))  # a little width, like a stereo mic pair
+    stereo = np.stack([mix, right], axis=1)
+    return stereo / np.max(np.abs(stereo)) * 0.8
+
+
 def write(name, x):
     OUT.mkdir(parents=True, exist_ok=True)
     wavfile.write(OUT / name, SR, (np.clip(x, -1, 1) * 32767).astype(np.int16))
@@ -476,3 +541,4 @@ if __name__ == "__main__":
     write("tea_100.wav", tea())
     write("funk_108.wav", funk())
     write("swish.wav", swish())
+    write("love_90.wav", love())
