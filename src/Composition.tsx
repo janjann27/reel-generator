@@ -11,6 +11,8 @@ import { MemeReel, MEMES, MEME_DURATION } from "./reels/Memes";
 import { ThisOrThat, THIS_OR_THAT_DURATION } from "./reels/ThisOrThat";
 import { ExQuiz, EX_QUIZ, MAD_QUIZ, quizDuration } from "./reels/convos/ExQuiz";
 import { PickOne, PICK_ONE, PICK_SHORT, pickOneDuration } from "./reels/abcd/PickOne";
+import { ViralGame, VIRAL_GAMES, viralGameDuration } from "./reels/viral/ViralGame";
+import { QuestionFor, QUESTIONS_FOR, QUESTION_FOR_DURATION, QUESTION_FOR_FPS } from "./reels/viral/QuestionFor";
 import { CouplePostReel, COUPLE_POSTS, COUPLE_POST_DURATION } from "./reels/CouplePost";
 
 export const MyComposition = () => {
@@ -142,6 +144,30 @@ export const MyComposition = () => {
           defaultProps={{ meme: m }}
           durationInFrames={MEME_DURATION}
           fps={30}
+          width={1080}
+          height={1920}
+        />
+      ))}
+      {VIRAL_GAMES.map(({ id, ...p }) => (
+        <Composition
+          key={id}
+          id={id}
+          component={ViralGame}
+          defaultProps={p}
+          durationInFrames={viralGameDuration(p)}
+          fps={30}
+          width={1080}
+          height={1920}
+        />
+      ))}
+      {QUESTIONS_FOR.map(({ id, ...p }) => (
+        <Composition
+          key={id}
+          id={id}
+          component={QuestionFor}
+          defaultProps={p}
+          durationInFrames={QUESTION_FOR_DURATION}
+          fps={QUESTION_FOR_FPS}
           width={1080}
           height={1920}
         />
