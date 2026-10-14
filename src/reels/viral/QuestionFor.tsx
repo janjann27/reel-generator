@@ -41,8 +41,6 @@ export const QUESTION_FOR_DURATION = 7 * QUESTION_FOR_FPS; // 7s: one read, a se
 const BG_FRAMES: Record<string, number> = {
   "reels/bg/city-couple.mp4": 114,
   "reels/bg/city-embrace.mp4": 177,
-  "reels/bg/couch-drop.mp4": 363,
-  "reels/bg/heads-together.mp4": 186,
   "reels/bg/night-hug.mp4": 266,
   "reels/bg/sweet-moment.mp4": 312,
 };
@@ -51,11 +49,13 @@ export type QuestionForProps = {
   question: string;
   /** public/ path of a vertical clip; omit for the plain card. */
   bg?: string;
+  /** public/ path of the music bed; defaults to the dark night_120 loop. */
+  music?: string;
   /** For the queue script; never rendered. */
   caption: string;
 };
 
-export const QuestionFor: React.FC<QuestionForProps> = ({ question, bg }) => (
+export const QuestionFor: React.FC<QuestionForProps> = ({ question, bg, music = "reels/audio/night_120.wav" }) => (
   <AbsoluteFill style={{ background: C.bg }}>
     {bg && (
       <>
@@ -82,29 +82,23 @@ export const QuestionFor: React.FC<QuestionForProps> = ({ question, bg }) => (
         lineHeight: 1.14,
         letterSpacing: "-0.01em",
         color: C.ink,
+        whiteSpace: "pre-line", // Verdict reels put the verdict on its own line
         textShadow: bg ? "0 2px 18px rgba(0,0,0,0.45)" : undefined,
       }}
     >
       {question}
     </div>
-    <Audio src={staticFile("reels/audio/night_120.wav")} loop volume={0.5} />
+    <Audio src={staticFile(music)} loop volume={0.5} />
   </AbsoluteFill>
 );
 
 export const QUESTIONS_FOR: (QuestionForProps & { id: string })[] = [
   // for the girls
   { id: "QForGirlsNoIdea", question: "girls, what’s something he does that he has no idea is attractive", caption: "be honest 😭 then send this to him" },
-  { id: "QForGirlsWaist", question: "girls do you like it when he grabs your waist from behind or is that just me", bg: "reels/bg/city-couple.mp4", // mixkit.co/free-stock-video/silhouetted-couple-under-city-lights-100949
-    caption: "just me?? send this to him" },
   { id: "QForGirlsFold", question: "girls be honest, what’s the smallest thing that makes you fold", caption: "it’s always something small. send this to him" },
   { id: "QForGirlsSaid", question: "girls, what’s the most attractive thing he’s ever said to you?", caption: "comment it. then send this to him" },
-  { id: "QForGirlsFirst", question: "girls, do you want him to kiss you first or wait for you to do it", bg: "reels/bg/couch-drop.mp4", // mixkit.co/free-stock-video/couple-dropping-onto-couch-101720
-    caption: "which one 👀 send this to him" },
   { id: "QForGirlsHair", question: "girls, does it make you melt when he plays with your hair or are we not admitting that", bg: "reels/bg/night-hug.mp4", // mixkit.co/free-stock-video/urban-couple-hug-at-night-outside-the-telephone-booth-100861
     caption: "be so for real 😭 send this to him" },
-  { id: "QForGirlsNoKiss", question: "girls be honest, how long could you actually go without kissing him", caption: "a day max. send this to him" },
-  { id: "QForGirlsForehead", question: "girls, forehead kisses or neck kisses. you only get one forever", bg: "reels/bg/heads-together.mp4", // mixkit.co/free-stock-video/couple-resting-their-heads-together-101418
-    caption: "choose wisely 😭 send this to him" },
   { id: "QForGirlsSecret", question: "girls, what’s one thing he does that he doesn’t know you secretly love", caption: "tell us. then send this to him" },
   // for the boys
   { id: "QForBoysNoIdea", question: "boys, what’s something she does that she has no idea drives you crazy", bg: "reels/bg/city-couple.mp4", // mixkit.co/free-stock-video/silhouetted-couple-under-city-lights-100949
