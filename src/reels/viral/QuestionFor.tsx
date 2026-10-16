@@ -41,6 +41,8 @@ export const QUESTION_FOR_DURATION = 7 * QUESTION_FOR_FPS; // 7s: one read, a se
 const BG_FRAMES: Record<string, number> = {
   "reels/bg/city-couple.mp4": 114,
   "reels/bg/city-embrace.mp4": 177,
+  "reels/bg/gentle-kiss.mp4": 209,
+  "reels/bg/heartfelt.mp4": 270,
   "reels/bg/night-hug.mp4": 266,
   "reels/bg/sweet-moment.mp4": 312,
 };
@@ -112,4 +114,14 @@ export const QUESTIONS_FOR: (QuestionForProps & { id: string })[] = [
   { id: "QForBoysSmell", question: "boys be honest, do you actually notice when she smells good or nah", caption: "be honest. send this to him" },
   { id: "QForBoysAdmit", question: "boys, what’s one thing she does that you’d never admit you love", caption: "you can admit it here. send this to him" },
   { id: "QForBoysTextOrShow", question: "boys, would you rather she text first or just show up", caption: "pick one. send this to him" },
+  // Oct 14: reel cut of mc's biggest post ever, gpt_abcd_gen "One bed, no sleeping? 🫦"
+  // (Oct 7, 98,285 reach / 7,497 shares, 5x the next post). Hook = its title, question = its
+  // first "who's more likely" line, me-or-you answer so the comment is one word.
+  { id: "QForOneBed", question: "one bed, no sleeping\n\nwho starts with\none kiss then\nwants five more\n\nme or you", bg: "reels/bg/gentle-kiss.mp4", // mixkit.co/free-stock-video/a-young-couple-having-a-gentle-and-lovely-kiss-at-100794
+    caption: "be honest 🫦 comment me or you. then send this to your person" },
+  // Oct 14, flamingoconvos: "Couch or shower first? 🫦" (gpt_abcd_gen, Sep 24) did 147k reach /
+  // 12.8k shares, #2 on the account since Sep 20. Two-word answer = easy comment; the dare to
+  // send it to him mirrors the caption of fc's biggest post ever (screenshot-dare reel, 278k).
+  { id: "QForCouchOrShower", question: "girls, send this to him\nand make him pick\n\ncouch or shower first", bg: "reels/bg/heartfelt.mp4", // mixkit.co/free-stock-video/vertical-video-of-a-young-couple-sharing-a-heartfelt-and-100796
+    caption: "Girls, I dare you to send this to your boyfriend 😏 whatever he picks, you have to do it" },
 ];

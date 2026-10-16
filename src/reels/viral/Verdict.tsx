@@ -16,4 +16,13 @@ export const VERDICTS: (QuestionForProps & { id: string })[] = [
     bg: "reels/bg/city-embrace.mp4", // mixkit.co/free-stock-video/silhouetted-couple-in-city-nightscape-embrace-100948
     caption: "be honest. then send this to him",
   },
+  {
+    // Oct 14 pick for couplesyx: micro-cheating is the most argued version of the topic, and
+    // both cx reels so far (QForGirlsFirst 1,178 reach, Forehead 665) got 0-2 comments.
+    // "girls," opener kept from QForGirlsFirst, the account's best post in its last 40.
+    id: "VerdictLikesPics",
+    question: "girls, he likes\nother girls’ pics\non instagram\n\ncheating or not",
+    bg: "reels/bg/sweet-moment.mp4", // mixkit.co/free-stock-video/couple-sharing-a-sweet-moment-101409
+    caption: "be honest 😭 comment yes or no. then send this to him",
+  },
 ];
