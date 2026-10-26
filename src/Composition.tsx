@@ -14,6 +14,7 @@ import { PickOne, PICK_ONE, PICK_SHORT, pickOneDuration } from "./reels/abcd/Pic
 import { ViralGame, VIRAL_GAMES, viralGameDuration } from "./reels/viral/ViralGame";
 import { QuestionFor, QUESTIONS_FOR, QUESTION_FOR_DURATION, QUESTION_FOR_FPS } from "./reels/viral/QuestionFor";
 import { VERDICTS } from "./reels/viral/Verdict";
+import { QuestionCard, QUESTION_CARDS, QUESTION_CARD_DURATION, QUESTION_CARD_FPS } from "./reels/viral/QuestionCard";
 import { CouplePostReel, COUPLE_POSTS, COUPLE_POST_DURATION } from "./reels/CouplePost";
 
 export const MyComposition = () => {
@@ -181,6 +182,18 @@ export const MyComposition = () => {
           defaultProps={p}
           durationInFrames={QUESTION_FOR_DURATION}
           fps={QUESTION_FOR_FPS}
+          width={1080}
+          height={1920}
+        />
+      ))}
+      {QUESTION_CARDS.map(({ id, ...p }) => (
+        <Composition
+          key={id}
+          id={id}
+          component={QuestionCard}
+          defaultProps={p}
+          durationInFrames={QUESTION_CARD_DURATION}
+          fps={QUESTION_CARD_FPS}
           width={1080}
           height={1920}
         />
