@@ -15,6 +15,7 @@ import { ViralGame, VIRAL_GAMES, viralGameDuration } from "./reels/viral/ViralGa
 import { QuestionFor, QUESTIONS_FOR, QUESTION_FOR_DURATION, QUESTION_FOR_FPS } from "./reels/viral/QuestionFor";
 import { VERDICTS } from "./reels/viral/Verdict";
 import { QuestionCard, QUESTION_CARDS, QUESTION_CARD_DURATION, QUESTION_CARD_FPS } from "./reels/viral/QuestionCard";
+import { DoodleListicle, JEALOUS_BF, WEIRD_BF, doodleDuration } from "./reels/doodle/DoodleListicle";
 import { CouplePostReel, COUPLE_POSTS, COUPLE_POST_DURATION } from "./reels/CouplePost";
 
 export const MyComposition = () => {
@@ -217,6 +218,24 @@ export const MyComposition = () => {
         fps={30}
         width={1080}
         height={1350}
+      />
+      <Composition
+        id="DoodleJealousBf"
+        component={DoodleListicle}
+        durationInFrames={doodleDuration(JEALOUS_BF)}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={JEALOUS_BF}
+      />
+      <Composition
+        id="DoodleWeirdBf"
+        component={DoodleListicle}
+        durationInFrames={doodleDuration(WEIRD_BF)}
+        fps={30}
+        width={1080}
+        height={1920}
+        defaultProps={WEIRD_BF}
       />
     </>
   );
