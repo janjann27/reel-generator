@@ -50,12 +50,38 @@ export type DoodleListicleProps = {
   endTitle: string; // "WHICH ONE\nIS HE?"
   endLines: string[]; // ["drop the number below", "send this to him"]
   music?: string;
+  /** Optional closing app CTA card after the end card. */
+  cta?: DoodleCta;
+  /** Optional timing overrides (frames); defaults HOOK_F / ITEM_F / END_F. */
+  /** true = scene images never move (no per-step tilt/nudge); text still boils. */
+  stillImages?: boolean;
+  hookF?: number;
+  itemF?: number;
+  endF?: number;
+};
+
+export type DoodleCta = {
+  title: string; // "want more\ncouple questions?"
+  line: string; // "search flamingo on the app store"
+  img: string; // 1080x1650 App Store search mock (mock-02 + 300px phone body), bottom-anchored
+};
+
+export const FLAMINGO_CTA: DoodleCta = {
+  title: "WANT MORE\nQUESTIONS?",
+  line: "search flamingo on the app store",
+  img: "reels/cta/flamingo-search.png",
 };
 
 export const HOOK_F = 90; // 3.0s  (6 beats @120bpm)
 export const ITEM_F = 105; // 3.5s (7 beats)
 export const END_F = 150; // 5.0s
-export const doodleDuration = (p: DoodleListicleProps) => HOOK_F + p.items.length * ITEM_F + END_F;
+export const CTA_F = 105; // 3.5s
+const timing = (p: DoodleListicleProps) => {
+  const hook = p.hookF ?? HOOK_F, item = p.itemF ?? ITEM_F, end = p.endF ?? END_F;
+  const endAt = hook + p.items.length * item;
+  return { hook, item, end, endAt, ctaAt: endAt + end };
+};
+export const doodleDuration = (p: DoodleListicleProps) => timing(p).ctaAt + (p.cta ? CTA_F : 0);
 
 /* ---------- motion ---------- */
 
@@ -77,12 +103,13 @@ const IMG_ROT = 0.8; // max deg, whole image
 const IMG_SHIFT = 3; // max px
 
 /** Same cadence as the text: holds still, then a small new tilt/nudge every BOIL_STEP frames. */
-const LivingImage: React.FC<{ src: string; width: number; seed?: number }> = ({ src, width, seed = 0 }) => {
-  const step = useBoilStep();
+const LivingImage: React.FC<{ src: string; width: number; seed?: number; still?: boolean }> = ({ src, width, seed = 0, still }) => {
+  const boil = useBoilStep();
+  const step = still ? 0 : boil;
   const k = `${src}-${seed}-${step}`;
-  const r = (random(`r${k}`) * 2 - 1) * IMG_ROT;
-  const x = (random(`x${k}`) * 2 - 1) * IMG_SHIFT;
-  const y = (random(`y${k}`) * 2 - 1) * IMG_SHIFT;
+  const r = still ? 0 : (random(`r${k}`) * 2 - 1) * IMG_ROT;
+  const x = still ? 0 : (random(`x${k}`) * 2 - 1) * IMG_SHIFT;
+  const y = still ? 0 : (random(`y${k}`) * 2 - 1) * IMG_SHIFT;
   return (
     <div style={{ width, height: width, transform: `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${r.toFixed(2)}deg)` }}>
       <Img src={staticFile(src)} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
@@ -183,13 +210,13 @@ const HookCard: React.FC<DoodleListicleProps> = (p) => {
       {p.hookBig}
     </Txt>
     <AbsoluteFill style={{ top: 720, alignItems: "center" }}>
-      <LivingImage src={p.hookImg} width={960} />
+      <LivingImage src={p.hookImg} width={960} still={p.stillImages} />
     </AbsoluteFill>
   </AbsoluteFill>
   );
 };
 
-const ItemCard: React.FC<{ item: DoodleItem; font: FontKey; seed: number }> = ({ item, font, seed }) => (
+const ItemCard: React.FC<{ item: DoodleItem; font: FontKey; seed: number; still?: boolean }> = ({ item, font, seed, still }) => (
   <AbsoluteFill style={{ background: "#fff" }}>
     <Txt font={font} size={64} top={270}>
       {item.label}
@@ -198,7 +225,7 @@ const ItemCard: React.FC<{ item: DoodleItem; font: FontKey; seed: number }> = ({
       {item.title}
     </Txt>
     <AbsoluteFill style={{ top: 640, alignItems: "center" }}>
-      <LivingImage src={item.img} width={820} seed={seed} />
+      <LivingImage src={item.img} width={820} seed={seed} still={still} />
     </AbsoluteFill>
     <Txt font={font} size={72} top={1420} lh={1.05}>
       {item.caption}
@@ -223,14 +250,14 @@ const EndCard: React.FC<DoodleListicleProps> = (p) => {
           {l}
         </Txt>
       ))}
-      <div style={{ position: "absolute", top: 860, left: 60, right: 60, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 28 }}>
+      <div style={{ position: "absolute", top: 860, left: 60, right: 60, display: "flex", flexWrap: "wrap", justifyContent: "center", gap: p.items.length === 4 ? 18 : 28 }}>
         {p.items.map((it, i) => {
           const s = spring({ frame: frame - 10 - i * 5, fps, config: { damping: 12, stiffness: 160 } });
           return (
             <div
               key={it.img}
               style={{
-                width: 300,
+                width: p.items.length === 4 ? 226 : 300, // 4 fit one row in 960px (border-box)
                 transform: `translateY(${interpolate(s, [0, 1], [500, 0])}px) rotate(${(i % 2 ? 1 : -1) * 2}deg)`,
                 border: `5px solid ${INK}`,
                 borderRadius: 28,
@@ -239,7 +266,7 @@ const EndCard: React.FC<DoodleListicleProps> = (p) => {
                 textAlign: "center",
               }}
             >
-              <Img src={staticFile(it.img)} style={{ width: "100%", transform: `rotate(${((random(`t${i}-${step}`) * 2 - 1) * IMG_ROT * 1.5).toFixed(2)}deg)` }} />
+              <Img src={staticFile(it.img)} style={{ width: "100%", transform: p.stillImages ? undefined : `rotate(${((random(`t${i}-${step}`) * 2 - 1) * IMG_ROT * 1.5).toFixed(2)}deg)` }} />
               <div style={{ fontFamily: FONTS[p.font], fontSize: 72, lineHeight: 1, color: INK, WebkitTextStroke: `1.8px ${INK}` }}>
                 <BoilText text={String(i + 1)} size={72} seed={`end${i}`} />
               </div>
@@ -251,24 +278,67 @@ const EndCard: React.FC<DoodleListicleProps> = (p) => {
   );
 };
 
+/** App CTA: doodle headline, the App Store search mock slides up from the bottom,
+ *  then a hand-drawn red ring is drawn around "Get". The mock stays crisp (no boil). */
+const CtaCard: React.FC<{ cta: DoodleCta; font: FontKey }> = ({ cta, font }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const s = spring({ frame: frame - 4, fps, config: { damping: 14, stiffness: 120 } });
+  const draw = interpolate(frame, [26, 44], [1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const step = useBoilStep();
+  const ringRot = ((random(`ring${step}`) * 2 - 1) * 2).toFixed(2);
+  return (
+    <AbsoluteFill style={{ background: "#fff" }}>
+      <Txt font={font} size={140} top={400} lh={0.88}>
+        {cta.title}
+      </Txt>
+      <Txt font={font} size={64} top={700} color={RED}>
+        {cta.line}
+      </Txt>
+      <div style={{ position: "absolute", left: 0, bottom: 0, width: 1080, height: 1650, transform: `translateY(${interpolate(s, [0, 1], [700, 0])}px)` }}>
+        <Img src={staticFile(cta.img)} style={{ width: "100%", height: "100%" }} />
+        {/* ring around the Get button (mock coords ~453-590 x 1208-1268) */}
+        <svg width={300} height={160} viewBox="0 0 300 160" style={{ position: "absolute", left: 371, top: 1158, overflow: "visible", transform: `rotate(${ringRot}deg)` }}>
+          <path
+            d="M40 92 C 30 40, 140 18, 220 30 C 290 42, 292 112, 210 132 C 130 150, 34 140, 30 96 C 28 70, 70 50, 110 44"
+            fill="none"
+            stroke={RED}
+            strokeWidth={9}
+            strokeLinecap="round"
+            pathLength={1}
+            strokeDasharray={1}
+            strokeDashoffset={draw}
+          />
+        </svg>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
 /* ---------- main ---------- */
 
 export const DoodleListicle: React.FC<DoodleListicleProps> = (p) => {
   const total = doodleDuration(p);
-  const cuts = [0, ...p.items.map((_, i) => HOOK_F + i * ITEM_F), HOOK_F + p.items.length * ITEM_F];
+  const t = timing(p);
+  const cuts = [0, ...p.items.map((_, i) => t.hook + i * t.item), t.endAt, ...(p.cta ? [t.ctaAt] : [])];
   return (
     <AbsoluteFill style={{ background: "#fff" }}>
-      <Sequence durationInFrames={HOOK_F}>
+      <Sequence durationInFrames={t.hook}>
         <HookCard {...p} />
       </Sequence>
       {p.items.map((it, i) => (
-        <Sequence key={it.img} from={HOOK_F + i * ITEM_F} durationInFrames={ITEM_F}>
-          <ItemCard item={it} font={p.font} seed={i * 3 + 1} />
+        <Sequence key={it.img} from={t.hook + i * t.item} durationInFrames={t.item}>
+          <ItemCard item={it} font={p.font} seed={i * 3 + 1} still={p.stillImages} />
         </Sequence>
       ))}
-      <Sequence from={HOOK_F + p.items.length * ITEM_F} durationInFrames={END_F}>
+      <Sequence from={t.endAt} durationInFrames={t.end}>
         <EndCard {...p} />
       </Sequence>
+      {p.cta ? (
+        <Sequence from={t.ctaAt} durationInFrames={CTA_F}>
+          <CtaCard cta={p.cta} font={p.font} />
+        </Sequence>
+      ) : null}
       {p.music ? (
         <Audio
           src={staticFile(p.music)}
@@ -305,6 +375,52 @@ export const JEALOUS_BF: DoodleListicleProps = {
   endTitle: "WHICH ONE\nIS HE?",
   endLines: ["drop the number below", "send this to him"],
   music: "reels/audio/mixkit_87.mp3",
+  cta: FLAMINGO_CTA,
+};
+
+/* Nov 24 2026: v2 of the format after the first readout (DoodleJealousBf avg watch 9.0s of 25.5s,
+   2 comments on 39k reach). Shorter (4 items, 2s hook, 2.5s items = 19.5s incl. CTA) and the comment
+   ask is on every item card instead of only the end card. Own script; same cat couple (cry/ assets
+   from _ops/doodle_cry_2026-11-24/gen.py). */
+const C = "reels/doodle/cry";
+
+export const CRY_BF: DoodleListicleProps = {
+  font: "schoolbell",
+  hookTop: "WHICH",
+  hookMid: "boyfriend is yours",
+  hookBig: "WHEN YOU CRY?",
+  hookImg: `${C}/hook.png`,
+  items: [
+    { label: "number one", title: "THE\nPANIC", caption: "\"WHO DID THIS??\"\nruns around with tissues", img: `${C}/1.png`, cta: "comment 1 if this is him" },
+    { label: "number two", title: "THE SNACK\nDEALER", caption: "says nothing\nreturns with all your snacks", img: `${C}/2.png`, cta: "comment 2 if this is him" },
+    { label: "number three", title: "THE\nFIXER", caption: "\"ok here's a 5-step plan\"\nyou wanted a hug", img: `${C}/3.png`, cta: "comment 3 if this is him" },
+    { label: "number four", title: "THE ONE\nWHO CRIES TOO", caption: "sees one tear\ncries louder than you", img: `${C}/4.png`, cta: "comment 4 if this is him" },
+  ],
+  endTitle: "WHICH ONE\nIS HE?",
+  endLines: ["comment the number", "send this to him"],
+  music: "reels/audio/mixkit_87.mp3",
+  cta: FLAMINGO_CTA,
+  stillImages: true,
+  hookF: 60,
+  itemF: 75,
+  endF: 105,
+};
+
+/* Nov 24 2026: same v2 format as CRY_BF, first PEOPLE cast (original couple, coral sweater gf +
+   cream overshirt bf; _ops/doodle_hungry_2026-11-24/gen.py). */
+const H = "reels/doodle/hungry";
+
+export const HUNGRY_BF: DoodleListicleProps = {
+  ...CRY_BF,
+  hookMid: "boyfriend is yours",
+  hookBig: "WHEN YOU'RE\nHUNGRY?",
+  hookImg: `${H}/hook.png`,
+  items: [
+    { label: "number one", title: "THE\nCHEF", caption: "you wanted a snack\nhe made a 3-course dinner", img: `${H}/1.png`, cta: "comment 1 if this is him" },
+    { label: "number two", title: "THE\nINDECISIVE ONE", caption: "\"where do you wanna eat?\"\nasks for 45 minutes", img: `${H}/2.png`, cta: "comment 2 if this is him" },
+    { label: "number three", title: "THE FRY\nTHIEF", caption: "\"i'm not hungry\"\neats half your fries", img: `${H}/3.png`, cta: "comment 3 if this is him" },
+    { label: "number four", title: "THE\nDELIVERY GUY", caption: "you said \"i'm hungry\" once\nfood shows up in 20 min", img: `${H}/4.png`, cta: "comment 4 if this is him" },
+  ],
 };
 
 /* From flamingo.app.reels viral quiz DdxQvKqDy1S "what kinda weird boyfriend am i?"
@@ -328,4 +444,5 @@ export const WEIRD_BF: DoodleListicleProps = {
   endTitle: "WHICH ONE\nIS HE?",
   endLines: ["drop the number below", "send this to him"],
   music: "reels/audio/mixkit_87.mp3",
+  cta: FLAMINGO_CTA,
 };
