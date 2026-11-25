@@ -13,3 +13,7 @@ out
 /.gemini
 /.github
 /.opencode
+# doodle scripts: local run records (contain storage download tokens) + caches
+scripts/doodle/queued.json
+scripts/doodle/posts.json
+__pycache__/
