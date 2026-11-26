@@ -211,6 +211,7 @@ const ICONS = {
       <path d="M12 12.2c1 1.5 2.8 2.4 2.8 4.3a2.8 2.8 0 0 1-5.6 0c0-1.5 1.4-2.4 2.8-4.3z" fill={YELLOW} stroke={INK} strokeWidth={1} />
     </>
   ),
+  moon: <path d="M15.5 3a8.8 8.8 0 1 0 5.5 14.6A7.6 7.6 0 0 1 15.5 3z" fill={YELLOW} stroke={INK} strokeWidth={1.3} />,
   bolt: <path d="M13.5 2 5 13.5h6L9.5 22 19 9.5h-6.2z" fill={YELLOW} stroke={INK} strokeWidth={1.3} />,
   burger: (
     <>
@@ -248,6 +249,7 @@ const ICON_RULES: [RegExp, [HookIcon, HookIcon]][] = [
   [/\b(jealous|flirt|flirts|flirting|ex)\b/, ["fire", "brokenHeart"]],
   [/\b(angry|mad|fight|fighting|argue|annoyed|crash ?outs?|crashing out)\b/, ["bolt", "fire"]],
   [/\b(weird|strange|odd|confused)\b/, ["question", "spiral"]],
+  [/\b(bed|sleep|sleeping|asleep|night)\b/, ["moon", "heart"]],
 ];
 export const pickHookIcons = (p: Pick<DoodleListicleProps, "hookMid" | "hookBig" | "hookIcons">): [HookIcon, HookIcon] => {
   if (p.hookIcons) return p.hookIcons;
@@ -505,6 +507,22 @@ export const CRASHOUT_GF: DoodleListicleProps = {
   endLines: ["comment the number", "send this to her"],
   endF: 0, // no end card: shorter reel
   music: "reels/audio/hungry_cat.mp3",
+};
+
+const IB = "reels/doodle/inbed";
+export const INBED_GF: DoodleListicleProps = {
+  ...CRASHOUT_GF,
+  hookTop: "HAS",
+  hookMid: "your girlfriend ever done this",
+  hookBig: "IN BED?",
+  hookImg: `${IB}/hook.png`,
+  items: [
+    { label: "number one", title: "THE\nSTARFISH", caption: "takes 90% of the bed.\nyou get the edge.", img: `${IB}/1.png`, cta: "comment 1 if she does this" },
+    { label: "number two", title: "THE ICE\nFEET", caption: "puts frozen feet\non your legs. on purpose.", img: `${IB}/2.png`, cta: "comment 2 if she does this" },
+    { label: "number three", title: "\"ARE YOU\nAWAKE?\"", caption: "you were asleep.\nnow you're discussing life.", img: `${IB}/3.png`, cta: "comment 3 if she does this" },
+    { label: "number four", title: "THE 5-MINUTE\nCUDDLE", caption: "\"cuddle me.\"\n5 min later: \"you're too hot.\"", img: `${IB}/4.png`, cta: "comment 4 if she does this" },
+  ],
+  music: "reels/audio/i_cant_wait.mp3",
 };
 
 

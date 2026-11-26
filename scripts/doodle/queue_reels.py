@@ -35,6 +35,10 @@ REELS = {
                          "which crashout is your girlfriend? comment the number 👇 and send this to her",
                          "people couple webcomic 'which crashout is your girlfriend' (4 items, no end card, 15.5s)",
                          "hungry_cat.mp3 music"),
+    "DoodleInBedGf": ("couplesyx",
+                      "has she? 👀 comment the number and send this to her",
+                      "people couple webcomic 'has your girlfriend ever done this in bed' sleep habits (4 items, no end card, 15.5s)",
+                      "i_cant_wait.mp3 music"),
 }
 
 
