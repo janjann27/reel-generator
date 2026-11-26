@@ -46,6 +46,8 @@ export type DoodleListicleProps = {
   hookMid: string; // "boyfriend is yours"
   hookBig: string; // "WHEN A GUY\nFLIRTS WITH YOU?"
   hookImg: string;
+  /** Two doodle icons beside hookTop. Omit = auto-picked from the hook text (see pickHookIcons). */
+  hookIcons?: [HookIcon, HookIcon];
   items: DoodleItem[];
   endTitle: string; // "WHICH ONE\nIS HE?"
   endLines: string[]; // ["drop the number below", "send this to him"]
@@ -181,27 +183,89 @@ const Txt: React.FC<{ font: FontKey; size: number; top: number; children: string
   </div>
 );
 
-const Star: React.FC<{ size: number }> = ({ size }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "inline-block", verticalAlign: "middle" }}>
-    <path d="M12 2.5l2.8 6.1 6.6.7-5 4.5 1.4 6.6L12 17l-5.8 3.4 1.4-6.6-5-4.5 6.6-.7z" fill="#f6c431" stroke={INK} strokeWidth={1.4} strokeLinejoin="round" />
+/* ---------- hook icons ---------- */
+
+const YELLOW = "#f6c431";
+const svgBox = (size: number, children: React.ReactNode) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "inline-block", verticalAlign: "middle", overflow: "visible" }}
+    strokeLinejoin="round" strokeLinecap="round">
+    {children}
   </svg>
 );
-const Heart: React.FC<{ size: number }> = ({ size }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "inline-block", verticalAlign: "middle" }}>
-    <path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.3 3 4.5 6.6 4.5c2.2 0 3.9 1.3 5.4 3.2 1.5-1.9 3.2-3.2 5.4-3.2 3.6 0 5.7 3.8 4.2 7.2C19.5 16.4 12 21 12 21z" fill={RED} stroke={INK} strokeWidth={1.2} />
-  </svg>
-);
+const HEART_D = "M12 21s-7.5-4.6-9.6-9.3C.9 8.3 3 4.5 6.6 4.5c2.2 0 3.9 1.3 5.4 3.2 1.5-1.9 3.2-3.2 5.4-3.2 3.6 0 5.7 3.8 4.2 7.2C19.5 16.4 12 21 12 21z";
+
+/** Flat-fill doodle icons, ink outline, 24x24 viewBox. */
+const ICONS = {
+  star: <path d="M12 2.5l2.8 6.1 6.6.7-5 4.5 1.4 6.6L12 17l-5.8 3.4 1.4-6.6-5-4.5 6.6-.7z" fill={YELLOW} stroke={INK} strokeWidth={1.4} />,
+  heart: <path d={HEART_D} fill={RED} stroke={INK} strokeWidth={1.2} />,
+  brokenHeart: (
+    <>
+      <path d={HEART_D} fill={RED} stroke={INK} strokeWidth={1.2} />
+      <path d="M12 7.7 L10.2 11.2 L13.4 13.4 L11 16.8 L12 20.6" fill="none" stroke={INK} strokeWidth={1.4} />
+    </>
+  ),
+  tear: <path d="M12 2.5C12 2.5 5 10.8 5 15a7 7 0 0 0 14 0C19 10.8 12 2.5 12 2.5z" fill="#8fd0ff" stroke={INK} strokeWidth={1.3} />,
+  fire: (
+    <>
+      <path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-7 .5 2.5 2 3 2 3-.5-3 0-5.5 1-8z" fill="#ff8a3d" stroke={INK} strokeWidth={1.3} />
+      <path d="M12 12.2c1 1.5 2.8 2.4 2.8 4.3a2.8 2.8 0 0 1-5.6 0c0-1.5 1.4-2.4 2.8-4.3z" fill={YELLOW} stroke={INK} strokeWidth={1} />
+    </>
+  ),
+  bolt: <path d="M13.5 2 5 13.5h6L9.5 22 19 9.5h-6.2z" fill={YELLOW} stroke={INK} strokeWidth={1.3} />,
+  burger: (
+    <>
+      <path d="M3 11.2C3 5.5 21 5.5 21 11.2z" fill="#e8a54b" stroke={INK} strokeWidth={1.2} />
+      <path d="M2.6 12.6q1.6 1.6 3.2 0t3.2 0 3.2 0 3.2 0 3.2 0 3.2 0" fill="none" stroke="#5fb85a" strokeWidth={1.6} />
+      <rect x={3} y={13.8} width={18} height={3} rx={1.5} fill="#7a4a2a" stroke={INK} strokeWidth={1.1} />
+      <rect x={3} y={17.4} width={18} height={3.4} rx={1.7} fill="#e8a54b" stroke={INK} strokeWidth={1.2} />
+    </>
+  ),
+  fries: (
+    <>
+      {[[7, 3.5, -8], [10, 2.5, -3], [13, 2.8, 4], [15.6, 4, 9]].map(([x, y, r], i) => (
+        <rect key={i} x={x} y={y} width={2.3} height={9} rx={0.6} fill={YELLOW} stroke={INK} strokeWidth={1} transform={`rotate(${r} ${x + 1} ${y + 9})`} />
+      ))}
+      <path d="M5.5 10.5h13l-1.6 10.8H7.1z" fill={RED} stroke={INK} strokeWidth={1.2} />
+    </>
+  ),
+  question: (
+    <>
+      <path d="M8.5 8.2C8.5 5.4 10.4 3.8 12.3 3.8c2.3 0 3.8 1.6 3.8 3.7 0 2.9-3.6 3.3-3.6 6.3" fill="none" stroke={INK} strokeWidth={5} />
+      <path d="M8.5 8.2C8.5 5.4 10.4 3.8 12.3 3.8c2.3 0 3.8 1.6 3.8 3.7 0 2.9-3.6 3.3-3.6 6.3" fill="none" stroke="#9b6bd6" strokeWidth={2.6} />
+      <circle cx={12.5} cy={18.8} r={1.9} fill="#9b6bd6" stroke={INK} strokeWidth={1.1} />
+    </>
+  ),
+  spiral: <path d="M12 12c1 0 1.5 1 1 1.8-.8 1.2-3 .8-3.3-.8-.4-2 1.8-3.6 3.8-3.2 2.6.5 3.6 3.6 2.4 5.9-1.4 2.7-5.4 3.2-7.6 1.2-2.6-2.4-2.2-6.8.6-8.8 3-2.2 7.6-1.4 9.4 1.8" fill="none" stroke={INK} strokeWidth={1.8} />,
+} satisfies Record<string, React.ReactNode>;
+export type HookIcon = keyof typeof ICONS;
+
+const HookIconSvg: React.FC<{ icon: HookIcon; size: number }> = ({ icon, size }) => svgBox(size, ICONS[icon]);
+
+/** First matching rule wins; falls back to star + heart. Matches hookMid + hookBig. */
+const ICON_RULES: [RegExp, [HookIcon, HookIcon]][] = [
+  [/\b(cry|cries|crying|sad|tears?|upset)\b/, ["tear", "brokenHeart"]],
+  [/\b(hungry|food|eat|eating|snack|dinner|lunch)\b/, ["burger", "fries"]],
+  [/\b(jealous|flirt|flirts|flirting|ex)\b/, ["fire", "brokenHeart"]],
+  [/\b(angry|mad|fight|fighting|argue|annoyed|crash ?outs?|crashing out)\b/, ["bolt", "fire"]],
+  [/\b(weird|strange|odd|confused)\b/, ["question", "spiral"]],
+];
+export const pickHookIcons = (p: Pick<DoodleListicleProps, "hookMid" | "hookBig" | "hookIcons">): [HookIcon, HookIcon] => {
+  if (p.hookIcons) return p.hookIcons;
+  const text = `${p.hookMid} ${p.hookBig}`.toLowerCase().replace(/[’']/g, "");
+  return ICON_RULES.find(([re]) => re.test(text))?.[1] ?? ["star", "heart"];
+};
 
 /* ---------- cards ---------- */
 
 const HookCard: React.FC<DoodleListicleProps> = (p) => {
   const step = useBoilStep();
   const tilt = (k: string) => `rotate(${((random(`${k}${step}`) * 2 - 1) * 6).toFixed(1)}deg)`;
+  const [iconL, iconR] = pickHookIcons(p);
   return (
   <AbsoluteFill style={{ background: "#fff" }}>
     <div style={{ position: "absolute", top: 250, left: 0, right: 0, textAlign: "center", fontFamily: FONTS[p.font], fontSize: 132, color: INK, WebkitTextStroke: `3.3px ${INK}` }}>
-      <span style={{ display: "inline-block", transform: tilt("star") }}><Star size={84} /></span> <BoilText text={p.hookTop} size={132} seed="hookTop" />{" "}
-      <span style={{ display: "inline-block", transform: tilt("heart") }}><Heart size={84} /></span>
+      <span style={{ display: "inline-block", transform: tilt("iconL") }}><HookIconSvg icon={iconL} size={84} /></span> <BoilText text={p.hookTop} size={132} seed="hookTop" />{" "}
+      <span style={{ display: "inline-block", transform: tilt("iconR") }}><HookIconSvg icon={iconR} size={84} /></span>
     </div>
     <Txt font={p.font} size={66} top={400}>
       {p.hookMid}
@@ -320,7 +384,8 @@ const CtaCard: React.FC<{ cta: DoodleCta; font: FontKey }> = ({ cta, font }) => 
 export const DoodleListicle: React.FC<DoodleListicleProps> = (p) => {
   const total = doodleDuration(p);
   const t = timing(p);
-  const cuts = [0, ...p.items.map((_, i) => t.hook + i * t.item), t.endAt, ...(p.cta ? [t.ctaAt] : [])];
+  // endF: 0 drops the "which one is he?" end card (items go straight to the CTA card).
+  const cuts = [0, ...p.items.map((_, i) => t.hook + i * t.item), ...(t.end > 0 ? [t.endAt] : []), ...(p.cta ? [t.ctaAt] : [])];
   return (
     <AbsoluteFill style={{ background: "#fff" }}>
       <Sequence durationInFrames={t.hook}>
@@ -331,9 +396,11 @@ export const DoodleListicle: React.FC<DoodleListicleProps> = (p) => {
           <ItemCard item={it} font={p.font} seed={i * 3 + 1} still={p.stillImages} />
         </Sequence>
       ))}
-      <Sequence from={t.endAt} durationInFrames={t.end}>
-        <EndCard {...p} />
-      </Sequence>
+      {t.end > 0 ? (
+        <Sequence from={t.endAt} durationInFrames={t.end}>
+          <EndCard {...p} />
+        </Sequence>
+      ) : null}
       {p.cta ? (
         <Sequence from={t.ctaAt} durationInFrames={CTA_F}>
           <CtaCard cta={p.cta} font={p.font} />
@@ -422,6 +489,24 @@ export const HUNGRY_BF: DoodleListicleProps = {
     { label: "number four", title: "THE\nDELIVERY GUY", caption: "you said \"i'm hungry\" once\nfood shows up in 20 min", img: `${H}/4.png`, cta: "comment 4 if this is him" },
   ],
 };
+const CO = "reels/doodle/crashout";
+export const CRASHOUT_GF: DoodleListicleProps = {
+  ...CRY_BF,
+  hookMid: "crashout is your",
+  hookBig: "GIRLFRIEND?",
+  hookImg: `${CO}/hook.png`,
+  items: [
+    { label: "number one", title: "THE\nESSAY", caption: "sends 14 paragraphs.\nthen \"nvm.\"", img: `${CO}/1.png`, cta: "comment 1 if this is her" },
+    { label: "number two", title: "THE RECEIPT\nKEEPER", caption: "remembers what you said\non march 3rd, 2023.", img: `${CO}/2.png`, cta: "comment 2 if this is her" },
+    { label: "number three", title: "THE FAKE\nSLEEPER", caption: "\"goodnight.\"\nis wide awake and furious.", img: `${CO}/3.png`, cta: "comment 3 if this is her" },
+    { label: "number four", title: "THE\nHANGRY ONE", caption: "not mad at you.\nmad there's no food.", img: `${CO}/4.png`, cta: "comment 4 if this is her" },
+  ],
+  endTitle: "WHICH ONE\nIS SHE?",
+  endLines: ["comment the number", "send this to her"],
+  endF: 0, // no end card: shorter reel
+  music: "reels/audio/hungry_cat.mp3",
+};
+
 
 /* From flamingo.app.reels viral quiz DdxQvKqDy1S "what kinda weird boyfriend am i?"
    (Sep 26 2026: 926k reach, 121k shares). Captions reuse that post's trait lines;

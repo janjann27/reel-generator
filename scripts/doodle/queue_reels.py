@@ -31,10 +31,14 @@ REELS = {
     "DoodleHungryBf": ("flamingo.app.reels",
                        "which one is he when you're hungry? comment the number 👇 and send this to him",
                        "people couple webcomic 'which bf is yours when you're hungry' (v2: 4 items, 19.5s)"),
+    "DoodleCrashoutGf": ("couplesyx",
+                         "which crashout is your girlfriend? comment the number 👇 and send this to her",
+                         "people couple webcomic 'which crashout is your girlfriend' (4 items, no end card, 15.5s)",
+                         "hungry_cat.mp3 music"),
 }
 
 
-def make_doc(reel, account, cap, note):
+def make_doc(reel, account, cap, note, music="Mixkit 87 music"):
     return {
         "username": account, "status": "pending",
         "type": "reel", "mediaType": "reel", "format": "reel",
@@ -44,7 +48,7 @@ def make_doc(reel, account, cap, note):
         "coverUrl": None, "transcriptions": 1, "hashes": [], "hashPrefixes": [],
         "source": "flamingo_reels", "sourceAccount": "", "sourcePostId": "",
         "poster": "meta", "submission_id": None,
-        "operatorNote": f"doodle: Remotion {reel} (carousel-vid/src/reels/doodle/DoodleListicle.tsx), gpt-image-2 {note}, Mixkit 87 music",
+        "operatorNote": f"doodle: Remotion {reel} (carousel-vid/src/reels/doodle/DoodleListicle.tsx), gpt-image-2 {note}, {music}",
     }
 
 
@@ -61,9 +65,9 @@ def main():
     log = HERE / "queued.json"
     recs = json.loads(log.read_text(encoding="utf-8")) if log.exists() else []
     for reel in names:
-        account, cap, note = REELS[reel]
+        account, cap, note, *music = REELS[reel]
         mp4 = OUT_MP4 / f"{reel}.mp4"
-        doc = make_doc(reel, account, cap, note)
+        doc = make_doc(reel, account, cap, note, *music)
         print(reel, mp4.stat().st_size, "bytes ->", account); print(doc["caption"]); print()
         if not apply:
             continue
